@@ -2,22 +2,22 @@ package com.application.app.entity;
 
 
 public class User {
-    private Integer id;
+    private Long id;
     private String username;
     private String password;
     private boolean enabled;
 
 
-    public User(Integer id, String username, String password, boolean enabled) {
+    public User(Long id, String username, String password, boolean enabled) {
         this.id = id;
         this.username = username;
         this.password = password;
         this.enabled = enabled;
     }
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
     

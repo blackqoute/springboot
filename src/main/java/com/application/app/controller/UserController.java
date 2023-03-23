@@ -1,96 +1,77 @@
 package com.application.app.controller;
 
 import com.application.app.entity.User;
-import com.application.app.mapper.UserMapper;
+import com.application.app.service.UserService;
 
+import java.net.URI;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
 
-@Controller
-@RequestMapping("/user")
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.web.bind.annotation.*;
+@RestController
+@RequestMapping("/api/v1/users")
 public class UserController {
 
-    @Autowired
-    private UserMapper userMapper;
+    private final UserService userService;
+
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @GetMapping("/{id}")
-    public String getUserById(@PathVariable("id") Integer id, Model model) {
-        User user = userMapper.getId(id);
-        model.addAttribute("user", user);
-        return "user-details";
+    public ResponseEntity<User> getUserById(@PathVariable("id") Long id) {
+        User user = userService.getUserById(id);
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(user);
     }
 
     @GetMapping("/username/{username}")
-    public String getUserByUsername(@PathVariable("username") String username, Model model) {
-        User user = userMapper.getUsername(username);
-        model.addAttribute("user", user);
-        return "user-details";
+    public ResponseEntity<User> getUserByUsername(@PathVariable("username") String username) {
+        User user = userService.getUserByUsername(username);
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(user);
     }
 
-    @GetMapping("/add")
-    public String showAddUserForm(Model model) {
-        model.addAttribute("user", new User(null, null, null, false));
-        return "user-form";
+    @PostMapping
+    public ResponseEntity<User> addUser(@RequestBody User user) {
+        userService.addUser(user);
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(user.getId())
+                .toUri();
+        return ResponseEntity.created(location).body(user);
     }
 
-    @PostMapping("/add")
-    public String addUser(@ModelAttribute("user") User user) {
-        userMapper.addUser(user);
-        return "redirect:/user/" + user.getId();
-    }
-
-    @GetMapping("/edit/{id}")
-    public String showEditUserForm(@PathVariable("id") Integer id, Model model) {
-        User user = userMapper.getId(id);
-        model.addAttribute("user", user);
-        return "user-form";
-    }
-
-    @PostMapping("/edit")
-    public String updateUser(@ModelAttribute("user") User user) {
-        userMapper.updateUser(user);
-        return "redirect:/user/" + user.getId();
+    @PutMapping("/{id}")
+    public ResponseEntity<User> updateUser(@PathVariable("id") Long id, @RequestBody User user) {
+        User existingUser = userService.getUserById(id);
+        if (existingUser == null) {
+            return ResponseEntity.notFound().build();
+        }
+        existingUser.setUsername(user.getUsername());
+        existingUser.setPassword(user.getPassword());
+        userService.updateUser(existingUser);
+        return ResponseEntity.ok(existingUser);
     }
 
     @DeleteMapping("/{id}")
-    public String deleteUserById(@PathVariable("id") Integer id) {
-    userMapper.deleteUser(id);
-    return "redirect:/users";
-    }
-
-    @GetMapping("/login")
-    public String showLoginPage() {
-    return "login";
-    }
-
-    @PostMapping("/login")
-    public String handleLoginSubmit(@RequestParam String username, @RequestParam String password, Model model) {
-        // TODO: Add authentication logic
-        if (username.equals("admin") && password.equals("admin")) {
-            return "redirect:/user/users";
-        } else {
-            model.addAttribute("error", "Invalid username or password");
-            return "login";
+    public ResponseEntity<Void> deleteUserById(@PathVariable("id") Long id) {
+        User user = userService.getUserById(id);
+        if (user == null) {
+            return ResponseEntity.notFound().build();
         }
+        userService.deleteUser(id);
+        return ResponseEntity.noContent().build();
     }
 
-
-    @GetMapping("/signup")
-    public String showSignUpPage() {
-    return "signup";
+    @GetMapping
+    public List<User> getAllUsers() {
+        return userService.getAllUsers();
     }
-
-    @GetMapping("/users")
-    public String showUserList(Model model) {
-    List<User> userList = userMapper.getAllUsers();
-    model.addAttribute("userList", userList);
-    return "user-list";
-}
-
-
-
 }

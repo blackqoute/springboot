@@ -5,11 +5,10 @@ import java.util.List;
 import com.application.app.entity.User;
 
 public interface UserMapper {
-    User getId(Integer id);
-    User getUsername(String Username);
+    User getUserById(Long id);
+    User getUserByUsername(String Username);
     void addUser(User user);
     void updateUser(User user);
-    void deleteUser(Integer id);
+    void deleteUser(Long id);
     List<User> getAllUsers();
-
 }
