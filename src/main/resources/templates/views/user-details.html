@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>User Details</title>
+</head>
+<body>
+    <h1>User Details</h1>
+    <p th:text="'Name: ' + ${user.name}" />
+    <p th:text="'Email: ' + ${user.email}" />
+    <p th:text="'Active: ' + ${user.active}" />
+    <a th:href="@{/user/edit/{id}(id=${user.id})}">Edit</a>
+    <form method="post" th:action="@{/user/{id}(id=${user.id})}?_method=delete">
+        <input type="submit" value="Delete">
+    </form>
+</body>
+</html>
